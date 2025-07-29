@@ -11,6 +11,15 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Server is running');
+  
 });
+
+
+app.get("/",(req,res)=>{
+    res.send({
+        activeStatus:true,
+        error:false
+    })
+})
 
 export default app;
