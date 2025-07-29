@@ -1,22 +1,62 @@
+import "dotenv/config";
+import "./config/passport.config";
+import express, { NextFunction, Request, Response } from "express";
+import cors from "cors";
+import passport from "passport";
+import { Env } from "./config/env.config";
+import { HTTPSTATUS } from "./config/http.config";
+import { errorHandler } from "./middlewares/errorHandler.middleware";
+import { BadRequestException } from "./utils/app-error";
+import { asyncHandler } from "./middlewares/asyncHandler.middlerware";
+import connctDatabase from "./config/database.config";
+import authRoutes from "./routes/auth.route";
+import { passportAuthenticateJwt } from "./config/passport.config";
+import userRoutes from "./routes/user.route";
+import transactionRoutes from "./routes/transaction.route";
+import { initializeCrons } from "./cron";
+import reportRoutes from "./routes/report.route";
+import { getDateRange } from "./utils/date";
+import analyticsRoutes from "./routes/analytics.route";
 
-import dotenv from 'dotenv';
-import connectDB from './config/db';
-import app from './app';
+const app = express();
+const BASE_PATH = Env.BASE_PATH;
 
-dotenv.config();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const PORT = process.env.PORT || 5000;
+app.use(passport.initialize());
 
-const startServer = async () => {
-  try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+app.use(
+  cors({
+    origin: Env.FRONTEND_ORIGIN,
+    credentials: true,
+  })
+);
+
+app.get(
+  "/",
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    throw new BadRequestException("This is a test error");
+    res.status(HTTPSTATUS.OK).json({
+      message: "Hello Subcribe to the channel",
     });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
-};
+  })
+);
 
-startServer();
+app.use(`${BASE_PATH}/auth`, authRoutes);
+app.use(`${BASE_PATH}/user`, passportAuthenticateJwt, userRoutes);
+app.use(`${BASE_PATH}/transaction`, passportAuthenticateJwt, transactionRoutes);
+app.use(`${BASE_PATH}/report`, passportAuthenticateJwt, reportRoutes);
+app.use(`${BASE_PATH}/analytics`, passportAuthenticateJwt, analyticsRoutes);
+
+app.use(errorHandler);
+
+app.listen(Env.PORT, async () => {
+  await connctDatabase();
+
+  if (Env.NODE_ENV === "development") {
+    await initializeCrons();
+  }
+
+  console.log(`Server is running on port ${Env.PORT} in ${Env.NODE_ENV} mode`);
+});
