@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "install-deps": "npm install --legacy-peer-deps"
+    "buildCommand": "cd client && npm run build",
+    "outputDirectory": "client/.next",
+    "installCommand": "cd client && npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -42,6 +44,8 @@
     "react": "^18.3.1",
     "react-countup": "^6.5.3",
     "react-currency-input-field": "^3.10.0",
+    "react-datepicker": "^8.4.0",
+    "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.56.1",
     "react-papaparse": "^4.4.0",
